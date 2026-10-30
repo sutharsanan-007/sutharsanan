@@ -1848,6 +1848,9 @@ textarea {
   .project-rail {
     grid-auto-columns: calc((100% - 14px) / 2);
   }
+  .hero-stage-wrap {
+    display: none;
+  }
   body.menu-open {
     overflow: hidden;
   }
@@ -1865,7 +1868,6 @@ textarea {
     position: fixed;
     inset: 0;
     z-index: 1;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     width: 100%;
@@ -1886,7 +1888,11 @@ textarea {
       opacity 0.35s ease,
       transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  .site-nav .navbar-collapse.collapse:not(.show) {
+    display: none;
+  }
   .site-nav .navbar-collapse.show {
+    display: flex;
     opacity: 1;
     transform: translateY(0) scale(1);
   }
