@@ -1976,7 +1976,8 @@ textarea {
     transform: translateY(-2px);
   }
   .hero {
-    min-height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
     padding: 125px 0 75px;
   }
   .hero-stage-wrap {
