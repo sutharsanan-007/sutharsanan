@@ -558,10 +558,32 @@ function setupPreloader(onComplete) {
 function setupNav() {
   const nav = $(".site-nav"),
     menu = $("#siteMenu"),
+    toggle = $(".nav-toggle"),
+    toggleIcon = toggle.querySelector("i"),
     links = $$(".nav-link");
   const update = () => nav.classList.toggle("scrolled", window.scrollY > 24);
   window.addEventListener("scroll", update, { passive: true });
   update();
+  menu.addEventListener("shown.bs.collapse", () => {
+    toggleIcon.className = "bi bi-x-lg";
+    toggle.setAttribute("aria-label", "Close navigation");
+    if (window.innerWidth <= 991) document.body.classList.add("menu-open");
+  });
+  menu.addEventListener("hidden.bs.collapse", () => {
+    toggleIcon.className = "bi bi-list";
+    toggle.setAttribute("aria-label", "Open navigation");
+    document.body.classList.remove("menu-open");
+  });
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      menu.classList.contains("show") &&
+      window.innerWidth <= 991
+    ) {
+      bootstrap.Collapse.getOrCreateInstance(menu).hide();
+      toggle.focus();
+    }
+  });
   $$("#siteMenu a").forEach((link) =>
     link.addEventListener("click", () => {
       if (link.matches(".nav-link")) {
