@@ -1851,6 +1851,11 @@ textarea {
   body.menu-open {
     overflow: hidden;
   }
+  body.menu-open main,
+  body.menu-open #particleCanvas,
+  body.menu-open .ambient-glow {
+    visibility: hidden;
+  }
   .site-nav .navbar-brand,
   .site-nav .nav-toggle {
     position: relative;
@@ -1871,7 +1876,7 @@ textarea {
     background:
       radial-gradient(ellipse at 85% 20%, #5a37bd3b, transparent 38%),
       radial-gradient(ellipse at 10% 85%, #1c8baf2b, transparent 42%),
-      rgba(5, 7, 19, 0.98);
+      #050713;
     backdrop-filter: blur(24px);
     border: 0;
     opacity: 0;
@@ -2176,6 +2181,16 @@ textarea {
   }
   .to-top {
     margin-left: auto;
+  }
+}
+@media (max-width: 767px) {
+  body.is-scrolling .hero-stage *,
+  body.is-scrolling .hero .live-dot,
+  body.is-scrolling .hero .type-caret {
+    animation-play-state: paused !important;
+  }
+  body.is-scrolling .site-nav {
+    backdrop-filter: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

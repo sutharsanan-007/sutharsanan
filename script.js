@@ -849,10 +849,14 @@ ${name}`;
 function setupHeroMotion() {
   const stage = $("#heroStage"),
     canvas = $("#particleCanvas"),
-    ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d"),
+    mobileViewport = window.matchMedia("(max-width: 767px)");
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const pointer = { x: innerWidth / 2, y: innerHeight / 2 };
-  if (!reduced) {
+  const canTilt = window.matchMedia(
+    "(hover: hover) and (pointer: fine)",
+  ).matches;
+  if (!reduced && canTilt) {
     window.addEventListener(
       "pointermove",
       (e) => {
@@ -877,23 +881,27 @@ function setupHeroMotion() {
   let particles = [],
     w = 0,
     h = 0,
-    raf = 0;
+    raf = 0,
+    lastFrame = 0,
+    scrolling = false,
+    scrollTimeout = 0;
   function resize() {
-    w = canvas.width = window.innerWidth * Math.min(devicePixelRatio || 1, 1.5);
-    h = canvas.height =
-      window.innerHeight * Math.min(devicePixelRatio || 1, 1.5);
+    const pixelRatio = Math.min(
+      devicePixelRatio || 1,
+      mobileViewport.matches ? 1 : 1.5,
+    );
+    w = canvas.width = window.innerWidth * pixelRatio;
+    h = canvas.height = window.innerHeight * pixelRatio;
     canvas.style.width = innerWidth + "px";
     canvas.style.height = innerHeight + "px";
-    ctx.setTransform(
-      Math.min(devicePixelRatio || 1, 1.5),
-      0,
-      0,
-      Math.min(devicePixelRatio || 1, 1.5),
-      0,
-      0,
-    );
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     particles = Array.from(
-      { length: Math.min(65, Math.floor(innerWidth / 18)) },
+      {
+        length: Math.min(
+          mobileViewport.matches ? 18 : 65,
+          Math.floor(innerWidth / (mobileViewport.matches ? 22 : 18)),
+        ),
+      },
       () => ({
         x: Math.random() * innerWidth,
         y: Math.random() * innerHeight,
@@ -904,7 +912,12 @@ function setupHeroMotion() {
       }),
     );
   }
-  function draw() {
+  function draw(timestamp = 0) {
+    if (mobileViewport.matches && timestamp - lastFrame < 50) {
+      raf = requestAnimationFrame(draw);
+      return;
+    }
+    lastFrame = timestamp;
     ctx.clearRect(0, 0, innerWidth, innerHeight);
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
@@ -918,31 +931,51 @@ function setupHeroMotion() {
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(89,225,255,${p.a})`;
       ctx.fill();
-      for (let j = i + 1; j < particles.length; j++) {
-        const q = particles[j],
-          dx = p.x - q.x,
-          dy = p.y - q.y,
-          d = Math.hypot(dx, dy);
-        if (d < 105) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = `rgba(89,165,255,${(1 - d / 105) * 0.11})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
+      if (!mobileViewport.matches) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j],
+            dx = p.x - q.x,
+            dy = p.y - q.y,
+            d = Math.hypot(dx, dy);
+          if (d < 105) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = `rgba(89,165,255,${(1 - d / 105) * 0.11})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
         }
       }
     }
-    if (!reduced) raf = requestAnimationFrame(draw);
+    if (!reduced && !scrolling) raf = requestAnimationFrame(draw);
   }
   resize();
   draw();
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!mobileViewport.matches || reduced) return;
+      scrolling = true;
+      document.body.classList.add("is-scrolling");
+      cancelAnimationFrame(raf);
+      raf = 0;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = window.setTimeout(() => {
+        scrolling = false;
+        document.body.classList.remove("is-scrolling");
+        if (!raf) raf = requestAnimationFrame(draw);
+      }, 140);
+    },
+    { passive: true },
+  );
   window.addEventListener(
     "resize",
     () => {
       cancelAnimationFrame(raf);
       resize();
-      draw();
+      raf = 0;
+      if (!scrolling) draw();
     },
     { passive: true },
   );
